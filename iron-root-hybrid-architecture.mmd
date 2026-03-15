@@ -1,76 +1,83 @@
-flowchart TB
-    %% Iron Root hybrid architecture - v1
+flowchart LR
+    %% Iron Root concept architecture for IRON-2
 
-    User["Customer Admin / Operator"]
+    Customer["Customer Admin"]
 
-    subgraph Cloud["Iron Root Cloud (SaaS Control Plane)"]
-        CloudPortal["Cloud Portal\nMulti-tenant web UI"]
-        Identity["Identity / Tenant / Subscription Service"]
-        Catalog["Module & Workflow Catalog"]
-        Release["Release / Update Service"]
-        Telemetry["Telemetry / Reporting / Fleet Status"]
-        Federation["Federation / Appliance Registration API"]
-        Events["Serverless / Event Workers\nwebhooks, notifications, usage jobs"]
+    subgraph Hub["Iron Root Hub (Company-Operated SaaS)"]
+        direction TB
+        HubPortal["Ops Hub<br/>Internal licensing and fleet console"]
+        Entitlements["Licensing and Entitlements"]
+        Catalog["Module and Workflow Catalog"]
+        Release["Release and Update Metadata"]
+        Fleet["Fleet Telemetry and Usage"]
+        Federation["Federation Gateway<br/>Appliance registration and sync"]
+        Workers["Event and Background Workers"]
     end
 
-    subgraph Customer["Customer Environment"]
-        subgraph Appliance["Iron Root Appliance (Customer-Controlled On-Prem)"]
-            LocalPortal["Local Portal\n443 Web UI"]
-            LocalAPI["Local API"]
-            Controller["Controller Service"]
-            Workflow["Workflow Engine\nbranching, approvals, retries"]
-            Secrets["Secrets / Credential Store"]
-            Audit["Audit Log / Local State"]
-            AdapterLayer["Execution & Infrastructure Abstraction Layer"]
+    subgraph Estate["Customer Environment"]
+        direction TB
+
+        subgraph Appliance["Private Iron Root Appliance (Customer-Controlled)"]
+            direction TB
+            Portal["Customer Portal"]
+            API["API and PowerShell Surface"]
+            Control["Controllers<br/>Job coordination and policy execution"]
+            Runtime["Engines<br/>Container and function execution"]
+            Workflows["Workflow Engine<br/>Conditionals, approvals, retries"]
+            Secrets["Secrets and Credentials"]
+            State["Audit, Inventory, and Local State"]
+            Adapters["Execution Adapters"]
         end
 
-        subgraph Targets["Managed Targets"]
-            Windows["Windows Nodes\nWinRM / PSRP"]
-            Linux["Linux Nodes\nSSH"]
-            HyperV["Hyper-V Adapter"]
-            ContainerRuntime["Container / Workload Adapter"]
-            FutureAdapters["Future Adapters\nVMware / Proxmox / Cloud / etc."]
+        subgraph Managed["Managed Estate"]
+            direction TB
+            Windows["Windows Hosts<br/>PSRP and WinRM"]
+            Linux["Linux Hosts<br/>SSH"]
+            Images["Image Lifecycle"]
+            Packages["Patch and Package Services"]
+            Hypervisor["Hyper-V and Other Hypervisors"]
+            Containers["Containers and Runtime Workloads"]
         end
     end
 
-    User --> CloudPortal
-    User --> LocalPortal
+    Customer --> Portal
 
-    CloudPortal --> Identity
-    CloudPortal --> Telemetry
-    CloudPortal --> Catalog
-    CloudPortal --> Federation
+    HubPortal --> Entitlements
+    HubPortal --> Catalog
+    HubPortal --> Fleet
     Release --> Catalog
-    Events --> Telemetry
-    Events --> Identity
+    Workers --> Fleet
+    Workers --> Entitlements
 
-    CloudPortal -. "launch / federate" .-> LocalPortal
-    Federation <-->|"outbound-only TLS 443"| LocalAPI
-    Catalog <-->|"catalog sync"| LocalAPI
-    Release <-->|"update metadata / packages"| LocalAPI
-    Telemetry <-. "health / usage / inventory metadata" .-> LocalAPI
+    Federation <-->|"outbound federation over TLS"| API
+    Entitlements <-->|"license and feature sync"| API
+    Catalog <-->|"module and workflow sync"| API
+    Release <-->|"release metadata and packages"| API
+    Fleet <-. "health, usage, and inventory" .-> API
 
-    LocalPortal --> LocalAPI
-    LocalAPI --> Controller
-    LocalAPI --> Workflow
-    Controller --> Workflow
-    Controller --> Secrets
-    Controller --> Audit
-    Workflow --> Audit
-    Workflow --> AdapterLayer
+    Portal --> API
+    API --> Control
+    API --> Workflows
+    Control --> Runtime
+    Control --> Secrets
+    Control --> State
+    Workflows --> Runtime
+    Workflows --> State
+    Runtime --> Adapters
 
-    AdapterLayer --> Windows
-    AdapterLayer --> Linux
-    AdapterLayer --> HyperV
-    AdapterLayer --> ContainerRuntime
-    AdapterLayer -.-> FutureAdapters
+    Adapters --> Windows
+    Adapters --> Linux
+    Adapters --> Images
+    Adapters --> Packages
+    Adapters --> Hypervisor
+    Adapters --> Containers
 
-    classDef cloud fill:#dbeafe,stroke:#1d4ed8,color:#0f172a;
-    classDef appliance fill:#dcfce7,stroke:#15803d,color:#0f172a;
-    classDef target fill:#fef3c7,stroke:#b45309,color:#0f172a;
-    classDef user fill:#f5d0fe,stroke:#a21caf,color:#0f172a;
+    classDef user fill:#f4f1de,stroke:#9c6644,color:#1f2937,stroke-width:1.5px;
+    classDef hub fill:#dbeafe,stroke:#2563eb,color:#0f172a,stroke-width:1.5px;
+    classDef appliance fill:#dcfce7,stroke:#16a34a,color:#0f172a,stroke-width:1.5px;
+    classDef managed fill:#fef3c7,stroke:#d97706,color:#0f172a,stroke-width:1.5px;
 
-    class CloudPortal,Identity,Catalog,Release,Telemetry,Federation,Events cloud;
-    class LocalPortal,LocalAPI,Controller,Workflow,Secrets,Audit,AdapterLayer appliance;
-    class Windows,Linux,HyperV,ContainerRuntime,FutureAdapters target;
-    class User user;
+    class Customer user;
+    class HubPortal,Entitlements,Catalog,Release,Fleet,Federation,Workers hub;
+    class Portal,API,Control,Runtime,Workflows,Secrets,State,Adapters appliance;
+    class Windows,Linux,Images,Packages,Hypervisor,Containers managed;
