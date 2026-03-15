@@ -43,3 +43,15 @@ The rough product shape today is:
 ## Current Architecture Sketch
 
 The current working architecture diagram lives in [iron-root-hybrid-architecture.mmd](/Users/art/.openclaw/workspace/projects/ironroot/iron-root-hybrid-architecture.mmd). It should be treated as a concept sketch for IRON-2, not a frozen design.
+
+## Team Workflow
+
+Iron Root development should use `dev` as the shared integration branch.
+
+- Create each work branch from `dev`
+- Name branches by Jira ticket and purpose, not by person
+- Do all work for that Jira ticket in that branch
+- Merge finished ticket branches back into `dev`
+- Promote `dev` into `main` only when the integrated work is ready for release
+
+The workflow diagram lives in [team-development-workflow.mmd](/Users/art/.openclaw/workspace/projects/ironroot/team-development-workflow.mmd).

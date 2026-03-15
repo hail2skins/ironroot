@@ -1,0 +1,32 @@
+flowchart LR
+    %% Team development workflow for Iron Root
+
+    Main["main<br/>Release branch"]
+    Dev["dev<br/>Shared integration branch"]
+    Ticket["Jira ticket is selected"]
+    Branch["Create short-lived branch from dev<br/>Example: IRON-27-workflow-engine"]
+    Work["Do all work for that ticket in the branch<br/>code, tests, docs, review fixes"]
+    Sync["Keep branch current with dev if needed"]
+    Review["Review and verify ticket work"]
+    Merge["Merge ticket branch back into dev"]
+    Release["When dev is stable, merge dev into main"]
+
+    Main --> Dev
+    Dev --> Ticket
+    Ticket --> Branch
+    Branch --> Work
+    Work --> Sync
+    Sync --> Work
+    Work --> Review
+    Review --> Merge
+    Merge --> Dev
+    Dev --> Release
+    Release --> Main
+
+    classDef release fill:#dbeafe,stroke:#2563eb,color:#0f172a,stroke-width:1.5px;
+    classDef integration fill:#dcfce7,stroke:#16a34a,color:#0f172a,stroke-width:1.5px;
+    classDef task fill:#fef3c7,stroke:#d97706,color:#0f172a,stroke-width:1.5px;
+
+    class Main release;
+    class Dev integration;
+    class Ticket,Branch,Work,Sync,Review,Merge,Release task;
